@@ -152,9 +152,9 @@ for (const newline of ['\n', '\r\n']) {
   });
 }
 
-test('Markdown injection leaves ordinary documents and quoted fence examples identical to built-in Markdown', () => {
+test('Markdown injections leave prose without macro calls and quoted fence examples identical to built-in Markdown', () => {
   const examples = [
-    ['# Titel', '', '**Fett** und *kursiv*, [Link](https://example.org).', '', '@outside [[Antwort]] {{3}}', '', fence + 'js', 'const example = "@LLMQuiz()";', fence],
+    ['# Titel', '', '**Fett** und *kursiv*, [Link](https://example.org).', '', 'Text [[Antwort]] {{3}}', '', fence + 'js', 'const example = "@LLMQuiz()";', fence],
     [fence.repeat(2) + 'markdown', fence + annotation, 'Kriterium', fence, fence.repeat(2), '', '# Danach'],
     ['Ein Beispiel: ' + '\u0060'.repeat(4) + ' ' + fence + annotation + ' ' + '\u0060'.repeat(4) + ' im Text.', '', '# Danach'],
     ['    ' + fence + annotation, '    Ein eingerücktes Codebeispiel.', '', '# Danach'],

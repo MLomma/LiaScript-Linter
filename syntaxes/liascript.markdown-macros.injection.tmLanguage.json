@@ -1,0 +1,11 @@
+{
+  "name": "LiaScript macro names in Markdown",
+  "scopeName": "liascript.markdown-macros.injection",
+  "injectionSelector": "L:text.html.markdown - text.html.markdown.liascript - markup.raw - markup.inline.raw - markup.fenced_code - meta.embedded - source - comment - string - meta.macro-call - meta.macro-arguments",
+  "patterns": [
+    {
+      "include": "text.html.markdown.liascript#macro-call"
+    }
+  ],
+  "comment": "Reuse LiaScript macro calls in Markdown prose while leaving quizzes, animations and literal code to the Markdown grammar."
+}

@@ -10,6 +10,7 @@ const scopeName = 'text.html.markdown.liascript';
 const files = {
   [scopeName]: 'syntaxes/liascript.tmLanguage.json',
   'liascript.injection': 'syntaxes/liascript.injection.tmLanguage.json',
+  'liascript.markdown-macros.injection': 'syntaxes/liascript.markdown-macros.injection.tmLanguage.json',
   'text.html.markdown': 'syntaxes/fixtures/markdown.tmLanguage.json',
   'source.js': 'syntaxes/fixtures/JavaScript.tmLanguage.json',
   'source.css': 'syntaxes/fixtures/css.tmLanguage.json',
@@ -34,7 +35,8 @@ test.before(async () => {
       const absolute = path.join(root, file);
       return textmate.parseRawGrammar(fs.readFileSync(absolute, 'utf8'), absolute);
     },
-    getInjections: scope => scope === scopeName ? ['liascript.injection'] : []
+    getInjections: scope => scope === scopeName ? ['liascript.injection']
+      : scope === 'text.html.markdown' ? ['liascript.markdown-macros.injection'] : []
   });
   grammar = await registry.loadGrammar(scopeName);
 });
@@ -160,10 +162,51 @@ test('style and onload macro contents retain CSS and JavaScript embedding scopes
   hasScope(rows, 7, '@end', 'keyword.control.end');
 });
 
-test('ordinary Markdown does not receive the LiaScript injection', async () => {
+test('ordinary Markdown recognizes macro names without enabling quizzes or animations', async () => {
   const markdown = await registry.loadGrammar('text.html.markdown');
   const rows = tokenize('Hallo @sample [[X]] {{1}}', markdown);
-  assert.ok(rows[0].tokens.every(token => token.scopes.every(scope => !scope.endsWith('.liascript'))));
+  hasScope(rows, 0, 'sample', 'entity.name.function.macro.liascript');
+  noLiaSyntax(rows, 0, '[[X]]');
+  noLiaSyntax(rows, 0, '{{1}}');
+});
+
+test('Markdown macro names have separate scopes from punctuation and nested or quoted arguments', async () => {
+  const markdown = await registry.loadGrammar('text.html.markdown');
+  const rows = tokenize('@Bla(blubb)\n@Outer(@Inner(value),\u0060@literal()\u0060)\n# Danach', markdown);
+  hasScope(rows, 0, 'Bla', 'entity.name.function.macro.liascript');
+  hasScope(rows, 0, '@', 'punctuation.definition.macro.liascript');
+  hasScope(rows, 0, '(', 'punctuation.section.arguments.begin.liascript');
+  hasScope(rows, 0, ')', 'punctuation.section.arguments.end.liascript');
+  for (const text of ['@', '(', 'blubb', ')']) {
+    assert.ok(!scopesAt(rows, 0, text).includes('entity.name.function.macro.liascript'), text);
+  }
+  hasScope(rows, 1, 'Outer', 'entity.name.function.macro.liascript');
+  hasScope(rows, 1, 'Inner', 'entity.name.function.macro.liascript');
+  hasScope(rows, 1, '@literal', 'string.quoted.backtick.macro-argument.liascript');
+  assert.ok(!scopesAt(rows, 1, '@literal').includes('entity.name.function.macro.liascript'));
+  hasScope(rows, 2, 'Danach', 'heading');
+  assert.ok(!scopesAt(rows, 2, 'Danach').includes('meta.macro-call.liascript'));
+});
+
+test('Markdown macro injection shields code, comments, embedded languages, email and escapes', async () => {
+  const markdown = await registry.loadGrammar('text.html.markdown');
+  const fence = '\u0060'.repeat(3);
+  const rows = tokenize([
+    '\u0060@inline(value)\u0060', '',
+    '    @indented(value)', '',
+    fence + 'text', '@fenced(value)', fence, '',
+    '<!-- @comment(value) -->', '',
+    '<script>', 'const value = "@javascript(value)";', '</script>', '',
+    '<style>', '.box { content: "@css(value)"; }', '</style>', '',
+    '<span title="@attribute(value)">Text</span>', '',
+    'mail@example.org and \\@escaped(value)', '', '@visible(value)'
+  ].join('\n'), markdown);
+  for (const [line, text] of [[0, '@inline'], [2, '@indented'], [5, '@fenced'],
+    [8, '@comment'], [11, '@javascript'], [15, '@css'], [18, '@attribute'],
+    [20, '@example'], [20, '@escaped']]) {
+    noLiaSyntax(rows, line, text);
+  }
+  hasScope(rows, 22, 'visible', 'entity.name.function.macro.liascript');
 });
 
 test('all contributed snippet bodies have a prefix and useful text', () => {

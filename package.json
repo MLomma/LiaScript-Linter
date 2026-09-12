@@ -75,6 +75,13 @@
         ]
       },
       {
+        "scopeName": "liascript.markdown-macros.injection",
+        "path": "./syntaxes/liascript.markdown-macros.injection.tmLanguage.json",
+        "injectTo": [
+          "text.html.markdown"
+        ]
+      },
+      {
         "scopeName": "liascript.markdown-fences.injection",
         "path": "./syntaxes/liascript.markdown-fences.injection.tmLanguage.json",
         "injectTo": [
@@ -126,6 +133,27 @@
           "group": "navigation"
         }
       ]
+    },
+    "configurationDefaults": {
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          {
+            "scope": [
+              "text.html.markdown markup.heading",
+              "text.html.markdown entity.name.section.markdown"
+            ],
+            "settings": {
+              "foreground": "#E53935"
+            }
+          },
+          {
+            "scope": "entity.name.function.macro.liascript",
+            "settings": {
+              "foreground": "#20C9B0"
+            }
+          }
+        ]
+      }
     },
     "configuration": {
       "title": "LiaScript",

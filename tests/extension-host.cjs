@@ -44,6 +44,13 @@ exports.run = async function run() {
   }
   try {
     let document;
+    await check('Syntaxfarben sind ohne Projekteinstellungen als VS-Code-Vorgabe geladen', async () => {
+      const colors = vscode.workspace.getConfiguration('editor').get('tokenColorCustomizations');
+      const rules = colors?.textMateRules ?? [];
+      assert.ok(rules.some(rule => rule.scope === 'entity.name.function.macro.liascript'
+        && rule.settings?.foreground === '#20C9B0'), JSON.stringify(colors));
+      assert.ok(rules.some(rule => rule.settings?.foreground === '#E53935'), JSON.stringify(colors));
+    });
     await check('Automatische Markdown-Erkennung und deutsche Diagnose', async () => {
       document = await open(broken);
       await waitFor(() => ours(document).some(d => d.code === 'LS002'), 'LS002 erscheint');

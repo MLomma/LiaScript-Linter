@@ -81,7 +81,8 @@ Makroargument lassen die Einfärbung des folgenden Abschnitts nicht mehr abbrech
 Dafür ist kein manueller Sprachwechsel nötig; Markdown-Vorschau und Snippets
 bleiben im Markdown-Modus verfügbar.
 
-Die vollständigen LiaScript-Syntaxfarben für Quizze, Makros und Animationen
+Makronamen in Aufrufen werden auch im Markdown-Sprachmodus hervorgehoben.
+Die vollständigen LiaScript-Syntaxfarben für Quizze und Animationen
 sind weiterhin an den Sprachmodus **LiaScript** gebunden.
 **LiaScript: Zum Markdown-Sprachmodus wechseln** stellt den ursprünglichen Modus wieder her.
 
@@ -96,7 +97,12 @@ Weitere Markdown-Erweiterungen können ebenfalls auf den Markdown-Sprachmodus be
 
 Die Grammatik hebt Dokumentköpfe, Metadaten, Makros, Quizmarker und Animationen hervor.
 Markdown und eingebettete Codeblöcke behalten ihre sprachabhängige Darstellung.
-Die konkreten Farben bestimmt das VS-Code-Theme.
+Die konkreten Farben bestimmt das VS-Code-Theme. Überschriften im Markdown- und LiaScript-Modus
+erhalten standardmäßig ein kräftiges Rot (`#E53935`). Eigene TextMate-Farbregeln
+unter `editor.tokenColorCustomizations` können diese Vorgabe überschreiben.
+Makroaufrufe erhalten einen türkisen Namen (`#20C9B0`): Bei `@Bla(blubb)` wird
+nur `Bla` eingefärbt; `@`, Klammern und Argumente behalten ihre bisherigen Farben.
+Das gilt im Markdown- und LiaScript-Modus, außerhalb von Codebeispielen.
 
 Makroargumente in einfachen oder dreifachen Backticks schützen enthaltene Kommas
 und Klammern vor einer falschen Trennung. Das gilt auch für `@LLMQuiz(...)`

@@ -1,0 +1,21 @@
+{
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": [
+          "text.html.markdown markup.heading",
+          "text.html.markdown entity.name.section.markdown"
+        ],
+        "settings": {
+          "foreground": "#E53935"
+        }
+      },
+      {
+        "scope": "entity.name.function.macro.liascript",
+        "settings": {
+          "foreground": "#20C9B0"
+        }
+      }
+    ]
+  }
+}
