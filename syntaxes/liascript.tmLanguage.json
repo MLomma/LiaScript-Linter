@@ -1,0 +1,1188 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "LiaScript",
+  "scopeName": "text.html.markdown.liascript",
+  "patterns": [
+    {
+      "include": "#blank-line"
+    },
+    {
+      "include": "#annotated-fences"
+    },
+    {
+      "include": "#metadata"
+    },
+    {
+      "include": "#bounded-html-tags"
+    },
+    {
+      "include": "#indented-lia"
+    },
+    {
+      "include": "#native"
+    },
+    {
+      "include": "text.html.markdown"
+    }
+  ],
+  "repository": {
+    "metadata": {
+      "name": "meta.metadata.liascript",
+      "begin": "^[ \\t]*(<!--)(?=[ \\t]*(?:$|@?[\\w][\\w.-]*[ \\t]*:))",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.comment.begin.html"
+        }
+      },
+      "end": "-->",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.comment.end.html"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "^[ \\t]*@@@",
+          "end": "^[ \\t]*@end\\b|(?=-->)",
+          "name": "comment.block.liascript"
+        },
+        {
+          "match": "^[ \\t]*@@(?:(?!-->).)*",
+          "name": "comment.line.liascript"
+        },
+        {
+          "include": "#style-macro"
+        },
+        {
+          "include": "#onload-macro"
+        },
+        {
+          "include": "#block-macro"
+        },
+        {
+          "match": "(?:^|\\G)[ \\t]*(@[\\w][\\w.-]*|[\\w][\\w.-]*)([ \\t]*:)([^\\r\\n]*?)(?=-->|$)",
+          "captures": {
+            "1": {
+              "name": "entity.name.tag.metadata.liascript"
+            },
+            "2": {
+              "name": "punctuation.separator.key-value.liascript"
+            },
+            "3": {
+              "name": "string.unquoted.metadata.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "include": "#macro-end"
+        },
+        {
+          "match": "(?:(?!-->).)+",
+          "name": "comment.block.html"
+        }
+      ]
+    },
+    "style-macro": {
+      "name": "meta.definition.macro.liascript",
+      "begin": "^[ \\t]*(@style)[ \\t]*$",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.name.function.preprocessor.liascript"
+        }
+      },
+      "end": "^[ \\t]*(@end)[ \\t]*$|(?=-->)",
+      "endCaptures": {
+        "1": {
+          "name": "keyword.control.end.liascript"
+        }
+      },
+      "contentName": "meta.embedded.block.css",
+      "patterns": [
+        {
+          "include": "source.css"
+        }
+      ]
+    },
+    "onload-macro": {
+      "name": "meta.definition.macro.liascript",
+      "begin": "^[ \\t]*(@onload)[ \\t]*$",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.name.function.preprocessor.liascript"
+        }
+      },
+      "end": "^[ \\t]*(@end)[ \\t]*$|(?=-->)",
+      "endCaptures": {
+        "1": {
+          "name": "keyword.control.end.liascript"
+        }
+      },
+      "contentName": "meta.embedded.block.javascript",
+      "patterns": [
+        {
+          "include": "source.js"
+        }
+      ]
+    },
+    "block-macro": {
+      "name": "meta.definition.macro.liascript",
+      "begin": "^[ \\t]*(@)(?!end\\b)([\\w][\\w.-]*)[ \\t]*$",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.macro.liascript"
+        },
+        "2": {
+          "name": "entity.name.function.preprocessor.liascript"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#indented-lia"
+        },
+        {
+          "include": "#native"
+        },
+        {
+          "include": "text.html.markdown"
+        }
+      ],
+      "while": "^(?![ \\t]*@end(?:[ \\t]*$)|.*-->)",
+      "comment": "Check termination before nested Markdown paragraphs and fences; the metadata rule colors @end after this block closes."
+    },
+    "indented-lia": {
+      "name": "meta.line.liascript",
+      "begin": "^[ \\t]+(?=(?:[-*+] )?(?:\\[\\[|\\[\\([ xX]\\)\\]|\\[->\\[|(?:--)?\\{\\{(?:\\d|[|!]>)|@[\\w]|\\$(?!\\$)(?:\\\\.|[^$\\\\\\r\\n])+\\$[ \\t]*$))",
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#native"
+        },
+        {
+          "include": "text.html.markdown#inline"
+        }
+      ]
+    },
+    "native": {
+      "patterns": [
+        {
+          "include": "text.html.markdown#raw"
+        },
+        {
+          "include": "text.html.markdown#escape"
+        },
+        {
+          "include": "#macro-end"
+        },
+        {
+          "include": "#macro-call"
+        },
+        {
+          "include": "#quiz-control"
+        },
+        {
+          "include": "#choice"
+        },
+        {
+          "include": "#drag-drop"
+        },
+        {
+          "include": "#matrix-header"
+        },
+        {
+          "include": "#quiz-placeholder"
+        },
+        {
+          "include": "#quiz"
+        },
+        {
+          "include": "#animation"
+        },
+        {
+          "include": "#math"
+        }
+      ]
+    },
+    "macro-end": {
+      "match": "(?<![\\w@\\\\])@end\\b",
+      "name": "keyword.control.end.liascript"
+    },
+    "macro-call": {
+      "patterns": [
+        {
+          "include": "#macro-call-arguments"
+        },
+        {
+          "match": "(?<![\\w@\\\\])(@)(?:([0-9]+)|([\\w][\\w.-]*))",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.macro.liascript"
+            },
+            "2": {
+              "name": "variable.parameter.liascript"
+            },
+            "3": {
+              "name": "entity.name.function.macro.liascript"
+            }
+          }
+        }
+      ]
+    },
+    "quiz-control": {
+      "match": "(?<!\\\\)\\[\\[([?!])\\]\\]",
+      "name": "keyword.control.quiz.liascript",
+      "captures": {
+        "1": {
+          "name": "constant.language.quiz.liascript"
+        }
+      }
+    },
+    "choice": {
+      "match": "(?<!\\\\)(\\[\\[|\\[\\()( *[xX]? *)(\\]\\]|\\)\\])",
+      "name": "meta.choice.liascript",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.quiz.begin.liascript"
+        },
+        "2": {
+          "name": "constant.language.answer.liascript"
+        },
+        "3": {
+          "name": "punctuation.definition.quiz.end.liascript"
+        }
+      }
+    },
+    "drag-drop": {
+      "begin": "(?<!\\\\)\\[->\\[",
+      "end": "\\]\\]",
+      "name": "meta.quiz.drag-drop.liascript",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.operator.quiz.liascript"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.quiz.end.liascript"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#quiz-content"
+        }
+      ]
+    },
+    "quiz": {
+      "begin": "(?<!\\\\)\\[\\[",
+      "end": "\\]\\]|(?=^[ \\t]*$)",
+      "name": "meta.quiz.liascript",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.quiz.begin.liascript"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.quiz.end.liascript"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#quiz-content"
+        }
+      ]
+    },
+    "quiz-content": {
+      "patterns": [
+        {
+          "include": "text.html.markdown#raw"
+        },
+        {
+          "include": "text.html.markdown#escape"
+        },
+        {
+          "include": "#macro-call"
+        },
+        {
+          "include": "#math"
+        },
+        {
+          "match": "[|()]",
+          "name": "keyword.operator.selection.liascript"
+        },
+        {
+          "include": "text.html.markdown#inline"
+        }
+      ]
+    },
+    "animation": {
+      "patterns": [
+        {
+          "name": "meta.animation.playback.liascript",
+          "match": "(?<!\\\\)(\\{\\{)(?:([0-9]+)(?:-([0-9]+))?[ \\t]+)?([|!]>)(?:[ \\t]+([^}]+))?(\\}\\})",
+          "captures": {
+            "1": {
+              "name": "keyword.control.animation.liascript"
+            },
+            "2": {
+              "name": "constant.numeric.animation.liascript"
+            },
+            "3": {
+              "name": "constant.numeric.animation.liascript"
+            },
+            "4": {
+              "name": "keyword.control.playback.liascript"
+            },
+            "5": {
+              "name": "string.unquoted.voice.liascript"
+            },
+            "6": {
+              "name": "keyword.control.animation.liascript"
+            }
+          }
+        },
+        {
+          "match": "(?<!\\\\)(--\\{\\{)([0-9]+)(?:[ \\t]+([^}]+))?(\\}\\}--)",
+          "name": "meta.animation.narration.liascript",
+          "captures": {
+            "1": {
+              "name": "keyword.control.animation.liascript"
+            },
+            "2": {
+              "name": "constant.numeric.animation.liascript"
+            },
+            "3": {
+              "name": "string.unquoted.voice.liascript"
+            },
+            "4": {
+              "name": "keyword.control.animation.liascript"
+            }
+          }
+        },
+        {
+          "match": "(?<!\\\\)(\\{\\{)([0-9]+)(?:(-)([0-9]+))?(\\}\\})",
+          "name": "meta.animation.liascript",
+          "captures": {
+            "1": {
+              "name": "keyword.control.animation.liascript"
+            },
+            "2": {
+              "name": "constant.numeric.animation.liascript"
+            },
+            "3": {
+              "name": "keyword.operator.range.liascript"
+            },
+            "4": {
+              "name": "constant.numeric.animation.liascript"
+            },
+            "5": {
+              "name": "keyword.control.animation.liascript"
+            }
+          }
+        },
+        {
+          "match": "(?<!\\\\)(\\{)([0-9]+)(?:(-)([0-9]+))?(\\})(?=\\{)",
+          "name": "meta.animation.inline.liascript",
+          "captures": {
+            "1": {
+              "name": "keyword.control.animation.liascript"
+            },
+            "2": {
+              "name": "constant.numeric.animation.liascript"
+            },
+            "3": {
+              "name": "keyword.operator.range.liascript"
+            },
+            "4": {
+              "name": "constant.numeric.animation.liascript"
+            },
+            "5": {
+              "name": "keyword.control.animation.liascript"
+            }
+          }
+        }
+      ]
+    },
+    "math": {
+      "patterns": [
+        {
+          "name": "meta.math.liascript",
+          "contentName": "markup.math.block.liascript",
+          "begin": "(?<!\\\\)\\$\\$",
+          "end": "(?<!\\\\)\\$\\$",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.math.begin.liascript"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.math.end.liascript"
+            }
+          },
+          "patterns": [
+            {
+              "include": "text.tex.latex"
+            }
+          ]
+        },
+        {
+          "name": "meta.math.liascript",
+          "contentName": "markup.math.inline.liascript",
+          "begin": "(?<![\\\\$])\\$(?!\\$)(?=.*?[^\\\\]\\$)",
+          "end": "(?<!\\\\)\\$|$",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.math.begin.liascript"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.math.end.liascript"
+            }
+          },
+          "patterns": [
+            {
+              "include": "text.tex.latex"
+            }
+          ]
+        }
+      ]
+    },
+    "macro-call-arguments": {
+      "name": "meta.macro-call.liascript",
+      "begin": "(?<![\\w@\\\\])(@)(?:([0-9]+)|([\\w][\\w.-]*))([ \\t]*\\()",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.macro.liascript"
+        },
+        "2": {
+          "name": "variable.parameter.liascript"
+        },
+        "3": {
+          "name": "entity.name.function.macro.liascript"
+        },
+        "4": {
+          "name": "punctuation.section.arguments.begin.liascript"
+        }
+      },
+      "end": "\\)",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.arguments.end.liascript"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#macro-argument-content"
+        }
+      ]
+    },
+    "macro-argument-content": {
+      "patterns": [
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.liascript"
+        },
+        {
+          "include": "#macro-argument-quoted"
+        },
+        {
+          "include": "#macro-call"
+        },
+        {
+          "include": "#macro-parentheses"
+        },
+        {
+          "match": "[,;]",
+          "name": "punctuation.separator.arguments.liascript"
+        }
+      ]
+    },
+    "macro-argument-quoted": {
+      "name": "string.quoted.backtick.macro-argument.liascript",
+      "begin": "(?<!`)(`+)(?!`)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.begin.liascript"
+        }
+      },
+      "end": "(?<!`)\\1(?!`)",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.liascript"
+        }
+      },
+      "comment": "Macro quoting uses a matching run of backticks. Its payload is opaque, including commas, parentheses, blank lines and shorter code fences."
+    },
+    "macro-parentheses": {
+      "name": "meta.macro-arguments.parentheses.liascript",
+      "begin": "\\(",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.group.begin.liascript"
+        }
+      },
+      "end": "\\)",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.group.end.liascript"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#macro-argument-content"
+        }
+      ]
+    },
+    "annotated-fences": {
+      "comment": "LiaScript accepts macro arguments containing backticks in fence annotations, unlike the normal Markdown info-string rule. The fence itself still closes only on its own delimiter line.",
+      "patterns": [
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:js|javascript|jsx|es6|mjs|cjs))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.javascript",
+              "patterns": [
+                {
+                  "include": "source.js"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:ts|typescript))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.typescript",
+              "patterns": [
+                {
+                  "include": "source.ts"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:tsx))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.typescriptreact",
+              "patterns": [
+                {
+                  "include": "source.tsx"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:json|jsonl))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.json",
+              "patterns": [
+                {
+                  "include": "source.json"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:jsonc))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.jsonc",
+              "patterns": [
+                {
+                  "include": "source.json.comments"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:css))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.css",
+              "patterns": [
+                {
+                  "include": "source.css"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:html|htm|shtml|xhtml))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.html",
+              "patterns": [
+                {
+                  "include": "text.html.basic"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:py|python))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.python",
+              "patterns": [
+                {
+                  "include": "source.python"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:sh|bash|shell|zsh))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.shellscript",
+              "patterns": [
+                {
+                  "include": "source.shell"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:yaml|yml))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.yaml",
+              "patterns": [
+                {
+                  "include": "source.yaml"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:sql))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.sql",
+              "patterns": [
+                {
+                  "include": "source.sql"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:tex|latex))[ \\t]+(@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?:^|\\G)(?=.)",
+              "while": "(?:^|\\G)(?![ \\t]*[`~]{3,}[ \\t]*\\r?$)",
+              "contentName": "meta.embedded.block.latex",
+              "patterns": [
+                {
+                  "include": "text.tex.latex"
+                },
+                {
+                  "match": "(?!)"
+                }
+              ],
+              "comment": "Recheck fence candidates before nested language states such as unclosed strings or comments; the outer rule validates delimiter type and length."
+            }
+          ]
+        },
+        {
+          "name": "markup.fenced_code.block.markdown",
+          "begin": "(?:^|\\G)([ \\t]*)(`{3,}|~{3,})[ \\t]*((?i:[^\\s`~]+))[ \\t]+((?=[^\\r\\n]*`)@[\\w][\\w.-]*(?:\\([^\\r\\n]*)?)[ \\t]*\\r?$",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.markdown"
+            },
+            "3": {
+              "name": "fenced_code.block.language.markdown"
+            },
+            "4": {
+              "name": "meta.code-fence.annotation.liascript",
+              "patterns": [
+                {
+                  "include": "#macro-call"
+                }
+              ]
+            }
+          },
+          "end": "(?:^|\\G)[ \\t]*\\2(?:(?<=`)`*|(?<=~)~*)[ \\t]*\\r?$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.markdown"
+            }
+          },
+          "comment": "Only intercept quoted annotations that ordinary Markdown rejects. Unquoted annotations in other languages keep their built-in syntax support."
+        }
+      ]
+    },
+    "quiz-placeholder": {
+      "name": "meta.quiz.placeholder.liascript",
+      "match": "(?<!\\\\)(\\[\\[)([ \\t]*_{3,}(?:[ \\t]+_{3,})*[ \\t]*)(\\]\\])",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.quiz.begin.liascript"
+        },
+        "2": {
+          "name": "constant.language.placeholder.liascript"
+        },
+        "3": {
+          "name": "punctuation.definition.quiz.end.liascript"
+        }
+      },
+      "comment": "Underscore-only input placeholders are literal quiz content, not nested Markdown emphasis."
+    },
+    "bounded-html-tags": {
+      "name": "meta.embedded.inline.html",
+      "match": "</?(?i:center|div|section|img|br|hr)\\b(?:[ \\t]+(?:[^<>\"'\\r\\n]|\"[^\"\\r\\n]*\"|'[^'\\r\\n]*')*)?[ \\t]*/?>",
+      "captures": {
+        "0": {
+          "patterns": [
+            {
+              "include": "text.html.basic"
+            }
+          ]
+        }
+      },
+      "comment": "These complete single-line layout tags do not start a Markdown HTML-block state, which would hide a following heading or prematurely pop a nested code fence at a blank line."
+    },
+    "matrix-header": {
+      "name": "meta.quiz.matrix.liascript",
+      "match": "(?<!\\\\)(\\[)(?=[ \\t]*(?:\\[(?:\\\\.|[^\\]\\\\\\r\\n])*\\]|\\((?:\\\\.|[^)\\\\\\r\\n])*\\))[ \\t]+[\\[(])([ \\t]*(?:(?:\\[(?:\\\\.|[^\\]\\\\\\r\\n])*\\]|\\((?:\\\\.|[^)\\\\\\r\\n])*\\))[ \\t]*){2,})(\\])",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.quiz.begin.liascript"
+        },
+        "2": {
+          "patterns": [
+            {
+              "name": "meta.quiz.matrix.column.liascript",
+              "match": "(\\[)((?:\\\\.|[^\\]\\\\\\r\\n])*)(\\])",
+              "captures": {
+                "1": {
+                  "name": "punctuation.definition.quiz.begin.liascript"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#native"
+                    },
+                    {
+                      "include": "text.html.markdown#inline"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "punctuation.definition.quiz.end.liascript"
+                }
+              }
+            },
+            {
+              "name": "meta.quiz.matrix.column.liascript",
+              "match": "(\\()((?:\\\\.|[^)\\\\\\r\\n])*)(\\))",
+              "captures": {
+                "1": {
+                  "name": "punctuation.definition.quiz.begin.liascript"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#native"
+                    },
+                    {
+                      "include": "text.html.markdown#inline"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "punctuation.definition.quiz.end.liascript"
+                }
+              }
+            }
+          ]
+        },
+        "3": {
+          "name": "punctuation.definition.quiz.end.liascript"
+        }
+      },
+      "comment": "Matrix columns are individually bounded captures; adjacent [label] cells must not become Markdown reference links."
+    },
+    "blank-line": {
+      "match": "^[ \\t]+$",
+      "comment": "Padding-only lines outside an existing code state are blank lines, not the start of indented code."
+    },
+    "table-math-cell": {
+      "name": "meta.table-cell.liascript",
+      "begin": "(?<=\\|)[ \\t]+(?=\\$(?!\\$)(?:\\\\.|[^$\\\\\\r\\n])*\\|(?:\\\\.|[^$\\\\\\r\\n])*\\$)",
+      "end": "(?=\\|)|$",
+      "patterns": [
+        {
+          "include": "#native"
+        },
+        {
+          "include": "text.html.markdown#inline"
+        }
+      ],
+      "comment": "Consume cell-leading whitespace before the Markdown cell matcher when a formula contains absolute-value bars. Consuming at least one character allows normal nested LiaScript injections without re-entering this wrapper at its start."
+    }
+  }
+}

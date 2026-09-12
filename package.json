@@ -1,0 +1,262 @@
+{
+  "name": "liascript-linter",
+  "displayName": "LiaScript Linter",
+  "description": "Syntaxfarben und statische LiaScript-Prüfung mit deutschen Meldungen.",
+  "version": "0.1.5",
+  "publisher": "liascript-local",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MLomma/LiaScript-Linter.git"
+  },
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.96.0",
+    "node": ">=22"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets"
+  ],
+  "keywords": [
+    "LiaScript",
+    "Markdown",
+    "lint",
+    "education"
+  ],
+  "main": "./dist/extension.js",
+  "bin": {
+    "liascript-lint": "./dist/cli.js"
+  },
+  "activationEvents": [
+    "onLanguage:markdown",
+    "onLanguage:liascript"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "liascript",
+        "aliases": [
+          "LiaScript",
+          "liascript"
+        ],
+        "extensions": [
+          ".lia.md",
+          ".liascript"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "liascript",
+        "scopeName": "text.html.markdown.liascript",
+        "path": "./syntaxes/liascript.tmLanguage.json",
+        "embeddedLanguages": {
+          "source.js": "javascript",
+          "source.css": "css",
+          "meta.embedded.block.javascript": "javascript",
+          "meta.embedded.block.css": "css",
+          "meta.embedded.block.html": "html"
+        }
+      },
+      {
+        "scopeName": "liascript.injection",
+        "path": "./syntaxes/liascript.injection.tmLanguage.json",
+        "injectTo": [
+          "text.html.markdown.liascript"
+        ]
+      },
+      {
+        "scopeName": "liascript.markdown-fences.injection",
+        "path": "./syntaxes/liascript.markdown-fences.injection.tmLanguage.json",
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.javascript": "javascript",
+          "meta.embedded.block.typescript": "typescript",
+          "meta.embedded.block.jsonc": "jsonc",
+          "meta.embedded.block.css": "css",
+          "meta.embedded.block.html": "html",
+          "meta.embedded.block.python": "python",
+          "meta.embedded.block.shellscript": "shellscript",
+          "meta.embedded.block.yaml": "yaml",
+          "meta.embedded.block.sql": "sql",
+          "meta.embedded.block.latex": "latex"
+        }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "liascript",
+        "path": "./snippets/liascript.code-snippets"
+      }
+    ],
+    "commands": [
+      {
+        "command": "liascript.lintDocument",
+        "title": "LiaScript: Aktuelle Datei prüfen"
+      },
+      {
+        "command": "liascript.enableLanguage",
+        "title": "LiaScript: Syntaxfarben aktivieren"
+      },
+      {
+        "command": "liascript.useMarkdown",
+        "title": "LiaScript: Zum Markdown-Sprachmodus wechseln"
+      },
+      {
+        "command": "liascript.showRules",
+        "title": "LiaScript: Prüfregeln anzeigen"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "liascript.lintDocument",
+          "when": "editorLangId == liascript",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "LiaScript",
+      "properties": {
+        "liascript.lint.enabled": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "LiaScript-Dateien beim Öffnen, Bearbeiten und Speichern prüfen."
+        },
+        "liascript.lint.markdown": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "always",
+            "never"
+          ],
+          "default": "auto",
+          "scope": "resource",
+          "enumDescriptions": [
+            "Markdown-Dateien mit erkennbarer LiaScript-Syntax prüfen.",
+            "Alle Markdown-Dateien prüfen.",
+            "Nur Dateien im LiaScript-Sprachmodus prüfen."
+          ],
+          "description": "Prüfung von Dateien im Markdown-Sprachmodus."
+        },
+        "liascript.lint.delay": {
+          "type": "number",
+          "default": 300,
+          "minimum": 0,
+          "maximum": 5000,
+          "scope": "resource",
+          "description": "Wartezeit nach einer Eingabe in Millisekunden."
+        },
+        "liascript.lint.maxFileSize": {
+          "type": "number",
+          "default": 2000000,
+          "minimum": 1000,
+          "maximum": 20000000,
+          "scope": "resource",
+          "description": "Maximale Dokumentgröße für die Live-Prüfung in UTF-16-Zeichen. Größere Dateien können über die Kommandozeile geprüft werden."
+        },
+        "liascript.lint.rules": {
+          "type": "object",
+          "default": {},
+          "scope": "resource",
+          "additionalProperties": false,
+          "properties": {
+            "LS001": {
+              "type": "string",
+              "enum": [
+                "off",
+                "error",
+                "warning",
+                "information"
+              ],
+              "description": "Nicht geschlossener HTML-Kommentar oder Dokumentkopf."
+            },
+            "LS002": {
+              "type": "string",
+              "enum": [
+                "off",
+                "error",
+                "warning",
+                "information"
+              ],
+              "description": "Blockmakro ohne @end."
+            },
+            "LS003": {
+              "type": "string",
+              "enum": [
+                "off",
+                "error",
+                "warning",
+                "information"
+              ],
+              "description": "@end ohne geöffnetes Blockmakro."
+            },
+            "LS004": {
+              "type": "string",
+              "enum": [
+                "off",
+                "error",
+                "warning",
+                "information"
+              ],
+              "description": "Nicht geschlossener Codeblock (Hinweis auf möglichen Schreibfehler)."
+            },
+            "LS005": {
+              "type": "string",
+              "enum": [
+                "off",
+                "error",
+                "warning",
+                "information"
+              ],
+              "description": "Nicht geschlossener Script-Block."
+            },
+            "LS006": {
+              "type": "string",
+              "enum": [
+                "off",
+                "error",
+                "warning",
+                "information"
+              ],
+              "description": "Statische Single-Choice-Aufgabe ohne markierte Antwort."
+            }
+          },
+          "description": "Einzelne Regeln deaktivieren oder ihren Schweregrad ändern."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "test": "npm run build && node --test tests/*.test.cjs",
+    "test:integration": "npm run build && node scripts/test-vscode.cjs",
+    "lint:examples": "npm run build && node dist/cli.js examples/valid.lia.md",
+    "vscode:prepublish": "npm run build",
+    "package": "node -e \"require('node:fs').mkdirSync('artifacts', { recursive: true })\" && vsce package --no-dependencies --allow-missing-repository --skip-license --out artifacts/liascript-linter-0.1.5.vsix",
+    "audit:corpus": "node scripts/audit-corpus.cjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "1.96.0",
+    "@vscode/vsce": "3.9.2",
+    "typescript": "5.9.3",
+    "vscode-textmate": "9.3.2",
+    "vscode-oniguruma": "^2.0.1"
+  },
+  "icon": "assets/lrLia.png"
+}

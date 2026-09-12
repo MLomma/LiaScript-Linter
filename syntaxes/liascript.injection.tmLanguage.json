@@ -1,0 +1,28 @@
+{
+  "name": "LiaScript inline syntax",
+  "scopeName": "liascript.injection",
+  "injectionSelector": "L:text.html.markdown.liascript - markup.raw - markup.fenced_code - meta.embedded - source - comment - string - meta.metadata.liascript - meta.line.liascript - meta.quiz - meta.math - meta.macro-call - meta.macro-arguments, L:text.html.markdown.liascript meta.definition.macro.liascript - markup.raw - markup.fenced_code - meta.embedded - source - comment - string - meta.line.liascript - meta.quiz - meta.math - meta.macro-call - meta.macro-arguments",
+  "patterns": [
+    {
+      "include": "text.html.markdown.liascript#blank-line"
+    },
+    {
+      "include": "text.html.markdown.liascript#table-math-cell"
+    },
+    {
+      "include": "text.html.markdown.liascript#annotated-fences"
+    },
+    {
+      "include": "text.html.markdown.liascript#metadata"
+    },
+    {
+      "include": "text.html.markdown.liascript#bounded-html-tags"
+    },
+    {
+      "include": "text.html.markdown.liascript#indented-lia"
+    },
+    {
+      "include": "text.html.markdown.liascript#native"
+    }
+  ]
+}

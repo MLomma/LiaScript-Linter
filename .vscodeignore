@@ -1,0 +1,15 @@
+.vscode/**
+.test-output/**
+artifacts/**
+src/**
+tests/**
+scripts/**
+node_modules/**
+syntaxes/fixtures/**
+tsconfig.json
+package-lock.json
+.gitignore
+**/*.map
+**/*.d.ts
+*.vsix
+reports/**

@@ -1,0 +1,19 @@
+{
+  "name": "LiaScript code fences in Markdown",
+  "scopeName": "liascript.markdown-fences.injection",
+  "injectionSelector": "L:text.html.markdown - text.html.markdown.liascript - markup.raw - markup.fenced_code - meta.embedded - source - comment - string - meta.fenced-code.liascript",
+  "patterns": [
+    {
+      "name": "meta.fenced-code.liascript",
+      "begin": "(?:^|\\G)(?= {0,3}(?:`{3,}|~{3,})[ \\t]*[^\\s`~]+[ \\t]+@[\\w][^\\r\\n]*`)",
+      "end": "$",
+      "patterns": [
+        {
+          "include": "text.html.markdown.liascript#annotated-fences"
+        }
+      ],
+      "comment": "Only quoted macro annotations need a Markdown repair. Respect Markdown indentation so the first line of an indented code example remains literal. The nested fence owns subsequent lines until its closing delimiter."
+    }
+  ],
+  "comment": "Recognize LiaScript macro annotations in Markdown without switching the language mode. Ordinary prose and code examples keep their Markdown grammar."
+}

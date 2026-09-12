@@ -1,0 +1,108 @@
+{
+  "LiaScript-Dokumentkopf": {
+    "prefix": "lia-header",
+    "description": "LiaScript-Dokumentkopf mit Kursüberschrift",
+    "body": [
+      "<!--",
+      "author: ${1:Name}",
+      "version: 0.0.1",
+      "language: de",
+      "comment: ${2:Beschreibung des Kurses}",
+      "-->",
+      "",
+      "# ${3:Kurstitel}",
+      "",
+      "$0"
+    ]
+  },
+  "Einfachauswahl": {
+    "prefix": "lia-single",
+    "description": "Quiz mit Einfachauswahl",
+    "body": [
+      "${1:Frage}",
+      "",
+      "[(X)] ${2:Richtige Antwort}",
+      "[( )] ${3:Falsche Antwort}",
+      "",
+      "$0"
+    ]
+  },
+  "Mehrfachauswahl": {
+    "prefix": "lia-multiple",
+    "description": "Quiz mit Mehrfachauswahl",
+    "body": [
+      "${1:Frage}",
+      "",
+      "[[X]] ${2:Richtige Antwort}",
+      "[[ ]] ${3:Falsche Antwort}",
+      "",
+      "$0"
+    ]
+  },
+  "Texteingabe": {
+    "prefix": "lia-text",
+    "description": "Quiz mit Texteingabe",
+    "body": [
+      "${1:Frage}",
+      "",
+      "[[${2:Lösung}]]",
+      "",
+      "$0"
+    ]
+  },
+  "Auswahlquiz": {
+    "prefix": "lia-select",
+    "description": "Auswahlquiz mit vorgegebener Lösung",
+    "body": [
+      "${1:Frage}",
+      "",
+      "[[ (${2:Richtige Antwort}) | ${3:Falsche Antwort} ]]",
+      "",
+      "$0"
+    ]
+  },
+  "Quizhinweis": {
+    "prefix": "lia-hint",
+    "description": "Hinweis zu einem Quiz",
+    "body": [
+      "[[?]] ${1:Hinweis}"
+    ]
+  },
+  "Blockmakro": {
+    "prefix": "lia-macro",
+    "description": "Blockmakro (in den Dokumentkopf oder einen lokalen Kopf einfügen)",
+    "body": [
+      "@${1:Name}",
+      "${2:Inhalt mit @0 als erstem Parameter}",
+      "@end",
+      "$0"
+    ]
+  },
+  "Animation": {
+    "prefix": "lia-animation",
+    "description": "Block ab einem Animationsschritt einblenden",
+    "body": [
+      "    {{${1:1}}}",
+      "${2:Inhalt}",
+      "",
+      "$0"
+    ]
+  },
+  "Sprechertext": {
+    "prefix": "lia-narration",
+    "description": "Sprechertext für einen Animationsschritt",
+    "body": [
+      "    --{{${1:0}}}--",
+      "${2:Sprechertext}",
+      "",
+      "$0"
+    ]
+  },
+  "Template-Import": {
+    "prefix": "lia-import",
+    "description": "Template im Dokumentkopf importieren",
+    "body": [
+      "import: ${1:https://raw.githubusercontent.com/LiaTemplates/Template/master/README.md}"
+    ]
+  }
+}
