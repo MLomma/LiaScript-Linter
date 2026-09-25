@@ -78,8 +78,16 @@ eine einzelne Prüfung aus.
 Codeblöcke mit LiaScript-Makros in der Startzeile, etwa `@LLMQuiz(...)`,
 werden auch im normalen Markdown-Sprachmodus korrekt begrenzt. Backticks im
 Makroargument lassen die Einfärbung des folgenden Abschnitts nicht mehr abbrechen.
+Zusätzlich liefert die Erweiterung für erkannte LiaScript-Dokumente eigene
+Document Symbols und Folding Ranges. Dadurch bleiben nach einem solchen Block
+auch Dokumentgliederung, Faltung und Sticky Scroll bei den folgenden Überschriften.
 Dafür ist kein manueller Sprachwechsel nötig; Markdown-Vorschau und Snippets
 bleiben im Markdown-Modus verfügbar.
+
+Diese Schreibweise ist eine LiaScript-Erweiterung, aber keine gültige
+CommonMark-Fence: Die Info-Zeile einer Backtick-Fence darf dort selbst keine
+Backticks enthalten. LS007 weist deshalb trotz der LiaScript-bewussten
+Editorunterstützung auf die Inkompatibilität mit allgemeinen Markdown-Parsern hin.
 
 Makronamen in Aufrufen werden auch im Markdown-Sprachmodus hervorgehoben.
 Die vollständigen LiaScript-Syntaxfarben für Quizze und Animationen
@@ -128,10 +136,17 @@ Die Snippets ergänzen grundlegende Strukturen; sie sind kein vollständiger Tem
 | LS004 | Warnung | Nicht geschlossener Codeblock |
 | LS005 | Fehler | Nicht geschlossener `<script>`-Block außerhalb von Makrodefinitionen und Codebeispielen |
 | LS006 | Warnung | Statische Single-Choice-Aufgabe ohne markierte Antwort |
+| LS007 | Warnung | Backtick in der Info-Zeile einer Backtick-Fence |
 
 LS004 ist eine Hilfe beim Schreiben: Ein offener Codeblock am Dateiende ist nach
 Markdown nicht zwangsläufig ungültig. LS006 prüft nur zusammenhängende statische
 Antwortblöcke mit mindestens zwei Antwortzeilen. Mehrere akzeptierte Single-Choice-Antworten sind in LiaScript zulässig.
+LS007 markiert die beabsichtigte Öffnungszeile. Die spätere Abschluss-Fence
+kann von CommonMark-/VS-Code-Markdown-Parsern sonst als neue Öffnung gelesen
+werden und den restlichen Kurs als Codeblock verdecken. Eine Tilde-Fence wäre
+zwar CommonMark-gültig, wird vom aktuellen LiaScript-Parser aber ausdrücklich
+nicht unterstützt; deshalb bietet der Linter hier keinen automatischen Tilde-Fix an.
+Vier oder mehr Backticks beheben die Info-Zeilen-Regel ebenfalls nicht.
 
 Metadaten wie `author`, `tags` und `version` werden nicht zur technischen Pflicht erklärt.
 Unbekannte Makros werden nicht als Fehler gemeldet, weil sie aus Templates stammen können.
@@ -253,7 +268,7 @@ Beide Skripte lesen Kursdateien, ohne enthaltenen Code auszuführen.
 ## Projektaufbau
 
 - `src/core/`: Scanner, Regeln und editorunabhängige Ergebnisse
-- `src/extension.ts`: VS-Code-Diagnosen, Befehle und Korrekturvorschläge
+- `src/extension.ts`: VS-Code-Diagnosen, Befehle, Korrekturvorschläge, Dokument-Symbole und Faltbereiche
 - `src/cli.ts`: Dateiprüfung und Ausgabe für Terminal/CI
 - `syntaxes/`: LiaScript-Grammatiken
 - `snippets/`: Vorlagen für den Editor

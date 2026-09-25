@@ -261,6 +261,16 @@
                 "information"
               ],
               "description": "Statische Single-Choice-Aufgabe ohne markierte Antwort."
+            },
+            "LS007": {
+              "type": "string",
+              "enum": [
+                "off",
+                "error",
+                "warning",
+                "information"
+              ],
+              "description": "Backtick in der Info-Zeile einer Backtick-Fence; inkompatibel mit CommonMark- und VS-Code-Markdown-Parsern."
             }
           },
           "description": "Einzelne Regeln deaktivieren oder ihren Schweregrad ändern."

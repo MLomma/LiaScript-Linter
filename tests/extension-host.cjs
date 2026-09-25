@@ -23,6 +23,14 @@ async function open(content, language = 'markdown') {
   await vscode.window.showTextDocument(document);
   return document;
 }
+function symbolNames(symbols) {
+  const names = [];
+  for (const symbol of symbols ?? []) {
+    names.push(symbol.name);
+    names.push(...symbolNames(symbol.children));
+  }
+  return names;
+}
 const broken = '<!--\nlanguage: de\n@demo\nHallo\n-->\n# Kurs\n';
 const valid = '<!--\nlanguage: de\n@demo\nHallo\n@end\n-->\n# Kurs\n';
 
@@ -44,6 +52,38 @@ exports.run = async function run() {
   }
   try {
     let document;
+    await check('LiaScript-Provider stellt Symbole und Faltbereiche nach LLMQuiz wieder her', async () => {
+      assert.ok(vscode.extensions.getExtension('vscode.markdown-language-features'), 'Eingebaute Markdown-Sprachunterstützung gefunden');
+      const source = [
+        '# Wochenaufgabe 1 Klasse 9 – Mathematik',
+        '## Aufgabe 2: Konstruieren und Messen',
+        '```text @LLMQuiz(0.55,`Eine Frage mit Komma, Zusatz`)',
+        'Musterlösung',
+        '```',
+        '',
+        '## Wurzelfach',
+        'Text',
+        '## Aufgabe 3: Geometrie im Koordinatensystem',
+        'Text',
+      ].join('\n');
+      const outline = await open(source);
+      let names = [];
+      await waitFor(async () => {
+        names = symbolNames(await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', outline.uri));
+        return names.some(name => name.endsWith('Aufgabe 3: Geometrie im Koordinatensystem'));
+      }, 'LiaScript-Dokumentsymbole nach der Fence vorhanden');
+      assert.ok(names.some(name => name.endsWith('Wurzelfach')), JSON.stringify(names));
+      assert.ok(names.some(name => name.endsWith('Aufgabe 3: Geometrie im Koordinatensystem')), JSON.stringify(names));
+      let ranges = [];
+      await waitFor(async () => {
+        ranges = await vscode.commands.executeCommand('vscode.executeFoldingRangeProvider', outline.uri) ?? [];
+        return ranges.some(range => range.start === 6 && range.end >= 7);
+      }, 'LiaScript-Faltbereich nach der Fence vorhanden');
+      assert.ok(!ranges.some(range => range.start === 4 && range.end >= 9), JSON.stringify(ranges));
+      await waitFor(() => ours(outline).some(diagnostic => diagnostic.code === 'LS007'), 'LS007 erscheint');
+      const diagnostic = ours(outline).find(item => item.code === 'LS007');
+      assert.equal(outline.getText(diagnostic.range), source.split('\n')[2]);
+    });
     await check('Syntaxfarben sind ohne Projekteinstellungen als VS-Code-Vorgabe geladen', async () => {
       const colors = vscode.workspace.getConfiguration('editor').get('tokenColorCustomizations');
       const rules = colors?.textMateRules ?? [];
@@ -143,6 +183,7 @@ exports.run = async function run() {
       ].join('\n');
       await replace(document, source);
       await waitFor(() => ours(document).some(d => d.code === 'LS002'), 'Folgende Makrodiagnose bleibt sichtbar');
+      assert.ok(ours(document).some(d => d.code === 'LS007'), 'CommonMark-Inkompatibilität wird an der öffnenden Zeile gemeldet');
       assert.ok(!ours(document).some(d => d.code === 'LS004'), 'Kein falscher offener Codeblock');
       await replace(document, valid);
       await waitFor(() => ours(document).length === 0, 'Dokument wieder fehlerfrei');

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { lint, RULES, isLiaScriptDocument } = require('../dist/core/index.js');
+const { getDocumentStructure, lint, RULES, isLiaScriptDocument } = require('../dist/core/index.js');
 const codes = text => lint(text).map(issue => issue.code);
 const tick = '`';
 const fence = tick.repeat(3);
@@ -13,8 +13,8 @@ function applyFix(text, issue) {
   return text;
 }
 
-test('all six rules have unique IDs and valid default severities', () => {
-  assert.deepEqual(RULES.map(rule => rule.code), ['LS001', 'LS002', 'LS003', 'LS004', 'LS005', 'LS006']);
+test('all seven rules have unique IDs and valid default severities', () => {
+  assert.deepEqual(RULES.map(rule => rule.code), ['LS001', 'LS002', 'LS003', 'LS004', 'LS005', 'LS006', 'LS007']);
   assert.equal(new Set(RULES.map(rule => rule.code)).size, RULES.length);
   assert.ok(RULES.every(rule => ['error', 'warning', 'information'].includes(rule.defaultSeverity)));
 });
@@ -166,6 +166,56 @@ test('standard Markdown tilde examples are conservatively shielded', () => {
   assert.deepEqual(lint('~~~md\n<!--\n<script>\n~~~'), []);
 });
 
+test('LS007 reports backticks in a backtick-fence info line at the intended opener', () => {
+  const source = `${fence}text @LLMQuiz(0.55,${tick}Eine Frage mit Komma, Zusatz${tick})\nMusterlösung\n${fence}\n\n## Nachher\nText`;
+  const issues = lint(source);
+  assert.deepEqual(issues.map(issue => issue.code), ['LS007']);
+  assert.equal(source.slice(issues[0].start, issues[0].end), source.split('\n')[0]);
+  assert.match(issues[0].message, /CommonMark- und VS-Code-Parser/);
+  assert.match(issues[0].message, /Sticky Scroll/);
+  assert.equal(issues[0].fix, undefined);
+  assert.deepEqual(getDocumentStructure(source).headings.map(heading => heading.name), ['Nachher']);
+});
+
+test('the original LLMQuiz form keeps later LiaScript headings in the custom outline', () => {
+  const source = [
+    '# Wochenaufgabe 1 Klasse 9 – Mathematik',
+    '## Aufgabe 2: Konstruieren und Messen',
+    `${fence}text @LLMQuiz(0.55;coverage=0.55;solution=1;feedback=1;assessmentengine=quality;Rechtschreibung=1;Satzbau=1,${tick}Beschreibe Schritt für Schritt, wie du ein Dreieck konstruierst.${tick})`,
+    'Musterlösung',
+    fence,
+    '## Wurzelfach',
+    'Text',
+    '## Aufgabe 3: Geometrie im Koordinatensystem',
+    'Text',
+  ].join('\n');
+  assert.deepEqual(lint(source).map(issue => issue.code), ['LS007']);
+  assert.deepEqual(getDocumentStructure(source).headings.map(heading => heading.name), [
+    'Wochenaufgabe 1 Klasse 9 – Mathematik',
+    'Aufgabe 2: Konstruieren und Messen',
+    'Wurzelfach',
+    'Aufgabe 3: Geometrie im Koordinatensystem',
+  ]);
+});
+
+test('tilde fences remain CommonMark-compatible but are not offered as an automatic LiaScript fix', () => {
+  const source = `~~~text @LLMQuiz(0.55,${tick}Eine Frage mit Komma, Zusatz${tick})\nMusterlösung\n~~~\n\n## Nachher\nText`;
+  assert.deepEqual(lint(source), []);
+  assert.deepEqual(getDocumentStructure(source).headings.map(heading => heading.name), ['Nachher']);
+});
+
+test('ordinary backtick fences, inline code, and same-line triple code spans do not trigger LS007', () => {
+  assert.deepEqual(lint(`${fence}javascript\nconst value = 1;\n${fence}`), []);
+  assert.deepEqual(lint(`Text mit ${tick}Inline-Code${tick}.\n\n## Danach`), []);
+  assert.deepEqual(lint(`${fence}inline example${fence}\n\n## Danach`), []);
+});
+
+test('four-backtick fences with backticks in the info line still trigger LS007', () => {
+  const marker = tick.repeat(4);
+  const source = `${marker}text @LLMQuiz(0.55,${tick}Frage${tick})\nMusterlösung\n${marker}`;
+  assert.deepEqual(lint(source).map(issue => issue.code), ['LS007']);
+});
+
 test('multiline macro arguments with backticks are opaque', () => {
   const text = `# Kurs\n\n@highlight_green(${fence}\n<!--\n<script>\n[( )] one\n[( )] two\n${fence})`;
   assert.deepEqual(lint(text), []);
@@ -302,14 +352,17 @@ test('LLMQuiz code fences allow single/triple quoted macro arguments in the info
   for (const quote of [tick, fence]) {
     const source = `${fence}text @LLMQuiz(0.55;coverage=0.55,${quote}Aufgabenwortlaut (mit Klammern und ))${quote})\n<!--\n<script>\n[( )] Modellantwort\n[( )] Weiterer Text\n${fence}\n\n## Danach\n[( )] A\n[( )] B`;
     const issues = lint(source);
-    assert.deepEqual(issues.map(issue => issue.code), ['LS006']);
-    assert.equal(source.slice(issues[0].start, issues[0].end), '[( )] A\n[( )] B');
+    assert.deepEqual(issues.map(issue => issue.code), ['LS007', 'LS006']);
+    const quizIssue = issues.find(issue => issue.code === 'LS006');
+    assert.equal(source.slice(quizIssue.start, quizIssue.end), '[( )] A\n[( )] B');
   }
 });
 
 test('annotated code fences still report a genuinely missing code-block closer at the opener', () => {
   const source = `${fence}text @LLMQuiz(0.55,${tick}Aufgabe (mit Klammern)${tick})\nMusterantwort`;
-  const [issue] = lint(source);
+  const issues = lint(source);
+  assert.deepEqual(issues.map(issue => issue.code), ['LS004', 'LS007']);
+  const issue = issues.find(candidate => candidate.code === 'LS004');
   assert.equal(issue.code, 'LS004');
   assert.equal(issue.start, 0);
 });

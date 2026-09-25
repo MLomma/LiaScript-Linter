@@ -1,5 +1,14 @@
 # Änderungen
 
+## Unveröffentlicht
+
+- LS007 warnt an der beabsichtigten Öffnungszeile vor Backticks in der
+  Info-Zeile einer Backtick-Fence und erklärt den möglichen Gliederungsabbruch.
+- LiaScript-bewusste Document-Symbol- und Folding-Range-Provider erhalten
+  nachfolgende Überschriften für Dokumentgliederung, Faltung und Sticky Scroll.
+- Ein automatischer Wechsel auf Tilde-Fences bleibt aus, weil der aktuelle
+  LiaScript-Parser diese Fence-Form nicht unterstützt.
+
 ## 0.1.5
 
 - Die Projekt-README enthält einen LiaScript-Header mit Autor, Version, Sprache, Sprecherstimme, Beschreibung, Logo/Icon, Repository und den bestehenden Lizenzhinweisen.

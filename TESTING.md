@@ -1,7 +1,7 @@
 # Validierung
 
-Aktueller Nachtest: [Highlighting-Korrektur 0.1.4](reports/highlighting-0.1.4.md)
-mit 113 automatisierten Tests und 11 VS-Code-Integrationstests.
+Aktueller Nachtest am 25. September 2026: **120 automatisierte Tests**
+und **13 VS-Code-Integrationstests** bestanden.
 
 ## Bisheriger Gesamtstand 0.1.2
 
@@ -11,10 +11,11 @@ TypeScript 5.9.3 und VS Code 1.137.0
 
 ## Automatisierte Tests
 
-- **45 Prüfkern-Tests bestanden:** Makro- und Kommentargrenzen, lokale Köpfe,
+- **50 Prüfkern-Tests bestanden:** Makro- und Kommentargrenzen, lokale Köpfe,
   verschachtelte Codebeispiele, Skripte, HTML-Attribute, native Quizsyntax,
-  Regelunterdrückung, Schweregrade, CRLF und UTF-16-Positionen.
-- **38 Tokenizer-Tests bestanden:** reale TextMate-/Oniguruma-Token mit den
+  LS007 samt LiaScript-bewusster Gliederung, Regelunterdrückung, Schweregrade,
+  CRLF und UTF-16-Positionen.
+- **55 Tokenizer-Tests bestanden:** reale TextMate-/Oniguruma-Token mit den
   originalen Markdown-, HTML-, JavaScript-, CSS- und LaTeX-Grammatiken.
 - **12 CLI-Tests bestanden:** rekursive Suche, Dateiauswahl, Ausgabepositionen,
   Fehlercodes, Regeloptionen, JSON und Überspringen von Verzeichnisverknüpfungen.
@@ -24,36 +25,42 @@ TypeScript 5.9.3 und VS Code 1.137.0
 - **3 Audit-Tests bestanden:** wörtliche einzelne Backticks, Absatzgrenzen und
   weiterhin geschützte mehrzeilige Makroargumente.
 
-Aufruf: `npm test`. Insgesamt **98 erfolgreiche Tests**, keine ausgelassenen Fälle.
+Aufruf: `npm test`. Insgesamt **120 erfolgreiche Tests**, keine ausgelassenen Fälle.
 
 ## Integration mit VS Code
 
 `npm run test:integration` startet das installierte VS Code mit einem eigenen
 temporären Benutzerprofil und einem eigenen Erweiterungsverzeichnis.
 
-**11 Integrationstests bestanden:**
+**13 Integrationstests bestanden:**
 
-1. Automatische LiaScript-Erkennung in Markdown und deutsche Diagnose.
-2. Korrekturvorschlag über die echte Code-Action-API anwenden.
-3. Zwischen LiaScript- und Markdown-Sprachmodus wechseln.
-4. Schweregrad und Regeln ohne Neustart ändern.
-5. Automatische Prüfung deaktivieren und trotzdem manuell prüfen.
-6. Gewöhnliche Markdown-Codebeispiele ausnehmen.
-7. Markdown-Prüfung abschalten und den expliziten LiaScript-Modus weiter prüfen.
-8. Dokumentgröße begrenzen und Prüfung nach Konfigurationsänderung fortsetzen.
-9. Schnelle Änderungen ohne veraltete Diagnosemeldungen verarbeiten.
-10. Nach einem LLMQuiz-Codeblock die Diagnose im folgenden Abschnitt erhalten.
-11. Diagnosemeldungen beim Schließen aufräumen.
+1. Document Symbols und Folding Ranges für `Wurzelfach` und `Aufgabe 3`
+   trotz der CommonMark-inkompatiblen LLMQuiz-Öffnungszeile bereitstellen.
+2. Syntaxfarben ohne Projekteinstellungen als VS-Code-Vorgabe laden.
+3. Automatische LiaScript-Erkennung in Markdown und deutsche Diagnose.
+4. Korrekturvorschlag über die echte Code-Action-API anwenden.
+5. Zwischen LiaScript- und Markdown-Sprachmodus wechseln.
+6. Schweregrad und Regeln ohne Neustart ändern.
+7. Automatische Prüfung deaktivieren und trotzdem manuell prüfen.
+8. Gewöhnliche Markdown-Codebeispiele ausnehmen.
+9. Markdown-Prüfung abschalten und den expliziten LiaScript-Modus weiter prüfen.
+10. Dokumentgröße begrenzen und Prüfung nach Konfigurationsänderung fortsetzen.
+11. Schnelle Änderungen ohne veraltete Diagnosemeldungen verarbeiten.
+12. Nach einem LLMQuiz-Codeblock LS007 und die Diagnose im folgenden Abschnitt erhalten.
+13. Diagnosemeldungen beim Schließen aufräumen.
 
 Das Laufprotokoll liegt lokal unter `.test-output/vscode/host.log`.
 
 ## Referenzdateien
 
-- `examples/valid.lia.md` und `examples/llmquiz.lia.md`: **keine Befunde**.
+- `examples/valid.lia.md`: **keine Befunde**.
+- `examples/llmquiz.lia.md`: LS007 dokumentiert bewusst die
+  CommonMark-Inkompatibilität der vorhandenen LLMQuiz-Startzeilen.
 - `examples/invalid.lia.md`: die vier beabsichtigten Meldungen
   **LS003**, **LS002**, **LS006** und **LS004**.
-- Alle 1.616 Markdown-Dateien aus Aufgabensammlung und Wochenaufgabe: **keine Befunde**.
-  Revisionen und Einzelnachweise stehen im [Korpusbericht](reports/corpus-audit.md).
+- Der historische Sechs-Regeln- und Highlighting-Stand für 1.616 Markdown-Dateien
+  steht im [Korpusbericht](reports/corpus-audit.md). LS007 ist eine neue,
+  beabsichtigte Warnung für dort vorhandene CommonMark-inkompatible Startzeilen.
 
 Die Kursreferenzen werden nicht mit dem Projekt verteilt. Die Tests enthalten
 kleine gezielte Syntaxfälle, die unabhängig von diesem lokalen Korpus ausführbar sind.
@@ -76,6 +83,16 @@ Makro-, Überschriften- und Quiz-Token und erzeugen keine Lintermeldungen.
 Ein zusätzlicher Vergleich mit den tatsächlich installierten VS-Code-Grammatiken
 bestätigt native JavaScript-/Python-Farben bei Backticks im Makrotitel und
 unveränderte Java-/C++-/C#-/Ruby-Farben bei gewöhnlichen Makrotiteln.
+
+Die neue Provider-Regression ruft
+`vscode.executeDocumentSymbolProvider` und
+`vscode.executeFoldingRangeProvider` mit dem Minimalbeispiel auf. Sie weist
+`Wurzelfach`, `Aufgabe 3: Geometrie im Koordinatensystem` und den
+Faltbereich nach der vermeintlichen Abschluss-Fence nach. Der gebaute Kern wurde
+zusätzlich read-only gegen
+`9/Mathematik/Lia9_01.md` aus Wochenaufgabe-Revision
+`6f1bd72a951a1739e5fc93f13406e4e2c281073d` geprüft: LS007 liegt in
+Zeile 583, die Gliederung enthält die Zeilen 616 und 626.
 
 ## Vollständiger Highlighting-Korpustest
 

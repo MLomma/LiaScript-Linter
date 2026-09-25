@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { isLiaScriptDocument, lint, RULES } from './core';
+import { DocumentHeading, getDocumentStructure, isLiaScriptDocument, lint, RULES } from './core';
 
 type Issue = ReturnType<typeof lint>[number];
 type RuleLevel = 'off' | 'error' | 'warning' | 'information';
@@ -13,6 +13,25 @@ const selectors: vscode.DocumentSelector = [
   { language: 'liascript' },
   { language: 'markdown' },
 ];
+
+function documentSymbols(document: vscode.TextDocument, headings: DocumentHeading[]): vscode.DocumentSymbol[] {
+  const roots: vscode.DocumentSymbol[] = [];
+  const stack: { level: number; symbol: vscode.DocumentSymbol }[] = [];
+  for (const heading of headings) {
+    const symbol = new vscode.DocumentSymbol(
+      heading.name,
+      '',
+      vscode.SymbolKind.String,
+      new vscode.Range(document.positionAt(heading.start), document.positionAt(heading.end)),
+      new vscode.Range(document.positionAt(heading.selectionStart), document.positionAt(heading.selectionEnd)),
+    );
+    while (stack.length && stack[stack.length - 1]!.level >= heading.level) stack.pop();
+    if (stack.length) stack[stack.length - 1]!.symbol.children.push(symbol);
+    else roots.push(symbol);
+    stack.push({ level: heading.level, symbol });
+  }
+  return roots;
+}
 
 export function activate(context: vscode.ExtensionContext): void {
   const diagnostics = vscode.languages.createDiagnosticCollection(source);
@@ -176,9 +195,24 @@ export function activate(context: vscode.ExtensionContext): void {
       return actions;
     },
   }, { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] });
+  const symbols = vscode.languages.registerDocumentSymbolProvider(selectors, {
+    provideDocumentSymbols(document) {
+      const structure = getDocumentStructure(document.getText());
+      return structure.detected ? documentSymbols(document, structure.headings) : undefined;
+    },
+  }, { label: 'LiaScript' });
+  const folding = vscode.languages.registerFoldingRangeProvider(selectors, {
+    provideFoldingRanges(document) {
+      const structure = getDocumentStructure(document.getText());
+      if (!structure.detected) return undefined;
+      return structure.headings
+        .filter(heading => heading.endLine > heading.line)
+        .map(heading => new vscode.FoldingRange(heading.line, heading.endLine, vscode.FoldingRangeKind.Region));
+    },
+  });
 
   context.subscriptions.push(
-    diagnostics, status, fixes,
+    diagnostics, status, fixes, symbols, folding,
     { dispose() { disposed = true; for (const timer of pending.values()) clearTimeout(timer); pending.clear(); results.clear(); manualDocuments.clear(); visibleDocuments.clear(); } },
     vscode.workspace.onDidOpenTextDocument(document => validate(document)),
     vscode.workspace.onDidChangeTextDocument(event => { if (event.contentChanges.length) schedule(event.document); }),

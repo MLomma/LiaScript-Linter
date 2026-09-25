@@ -11,6 +11,20 @@ export interface LintIssue {
   end: number;
   fix?: { title: string; edits: LintEdit[] };
 }
+export interface DocumentHeading {
+  level: number;
+  name: string;
+  start: number;
+  end: number;
+  selectionStart: number;
+  selectionEnd: number;
+  line: number;
+  endLine: number;
+}
+export interface DocumentStructure {
+  detected: boolean;
+  headings: DocumentHeading[];
+}
 export const RULES: ReadonlyArray<{ code: string; description: string; defaultSeverity: Severity }> = [
   { code: 'LS001', description: 'HTML-Kommentar oder Dokumentkopf nicht geschlossen', defaultSeverity: 'error' },
   { code: 'LS002', description: 'Blockmakro ohne abschließendes @end', defaultSeverity: 'error' },
@@ -18,6 +32,7 @@ export const RULES: ReadonlyArray<{ code: string; description: string; defaultSe
   { code: 'LS004', description: 'Codeblock ohne schließende Fence', defaultSeverity: 'warning' },
   { code: 'LS005', description: 'Script-Tag ohne schließendes </script>', defaultSeverity: 'error' },
   { code: 'LS006', description: 'Statisches Single-Choice-Quiz ohne markierte richtige Antwort', defaultSeverity: 'warning' },
+  { code: 'LS007', description: 'Backtick in der Info-Zeile einer Backtick-Fence', defaultSeverity: 'warning' },
 ];
 
 interface Line { text: string; start: number; end: number; next: number; visible: string; section: number }
@@ -83,7 +98,7 @@ function findMacroCallEnd(text: string, afterOpening: number): number {
   return lastQuotedEnd;
 }
 
-/** Backticks are permitted inside a LiaScript fence's macro annotation. */
+/** LiaScript accepts backticks inside a fence's macro annotation even though CommonMark does not. */
 function validFenceInfo(info: string): boolean {
   if (!info.includes('`')) return true;
   let cursor = 0;
@@ -201,12 +216,29 @@ function scan(text: string): ScanResult {
     const bare = line.text.slice(prefix);
     if (cursor === line.start) {
       const opening = /^[ \t]*(`{3,}|~{3,})(.*)$/.exec(bare);
-      if (opening && !(opening[1]![0] === '`' && !validFenceInfo(opening[2]!))) {
+      if (opening) {
         const token = line.start + prefix + bare.indexOf(opening[1]!);
-        fence = { char: opening[1]![0]!, size: opening[1]!.length, start: token };
-        line.visible = ' '.repeat(line.text.length);
-        headerAllowed = false;
-        continue;
+        const marker = opening[1]!;
+        const info = opening[2]!;
+        const trimmedInfo = info.trimEnd();
+        const sameLineInlineClose = marker[0] === '`'
+          && trimmedInfo.endsWith(marker)
+          && trimmedInfo[trimmedInfo.length - marker.length - 1] !== '`';
+        if (marker[0] === '`' && info.includes('`') && !sameLineInlineClose) {
+          add(
+            'LS007',
+            'Backtick in der Info-Zeile eines Backtick-Codeblocks: CommonMark- und VS-Code-Parser erkennen diese Zeile möglicherweise nicht als öffnende Fence. Eine nachfolgende vermeintliche Abschluss-Fence kann dadurch den restlichen Inhalt als offenen Codeblock markieren; Überschriften verschwinden dann aus Sticky Scroll und Dokumentgliederung.',
+            token,
+            line.end,
+          );
+        }
+        if (!(marker[0] === '`' && !validFenceInfo(info))) {
+          if (/@'?[\w][\w.:-]*\(/.test(info)) detected = true;
+          fence = { char: marker[0]!, size: marker.length, start: token };
+          line.visible = ' '.repeat(line.text.length);
+          headerAllowed = false;
+          continue;
+        }
       }
     }
     while (cursor < line.end) {
@@ -354,6 +386,48 @@ export function lint(text: string, options: LintOptions = {}): LintIssue[] {
     }
     return !nextLineDisabled && !disabled.has(issue.code);
   }).sort((a, b) => a.start - b.start || a.code.localeCompare(b.code));
+}
+
+function atxHeading(line: Line): Omit<DocumentHeading, 'end' | 'endLine'> | undefined {
+  const prefix = contentOffset(line.visible);
+  const visible = line.visible.slice(prefix);
+  const match = /^[ \t]{0,3}(#{1,6})(?:[ \t]+|$)/.exec(visible);
+  if (!match) return undefined;
+  const leading = /^[ \t]*/.exec(match[0])![0].length;
+  const markerStart = prefix + leading;
+  const titleStart = prefix + match[0].length;
+  const withoutClosingMarker = line.text.slice(titleStart).replace(/[ \t]+#+[ \t]*$/, '');
+  const name = withoutClosingMarker.trim();
+  const selectionStart = name
+    ? line.start + titleStart + withoutClosingMarker.indexOf(name)
+    : line.start + markerStart;
+  return {
+    level: match[1]!.length,
+    name: name || match[1]!,
+    start: line.start + markerStart,
+    selectionStart,
+    selectionEnd: name ? selectionStart + name.length : selectionStart + match[1]!.length,
+    line: 0,
+  };
+}
+
+/** LiaScript-aware headings for VS Code symbols and folding ranges. */
+export function getDocumentStructure(text: string): DocumentStructure {
+  const result = scan(text);
+  const headings: DocumentHeading[] = [];
+  for (let index = 0; index < result.lines.length; index++) {
+    const heading = atxHeading(result.lines[index]!);
+    if (heading) headings.push({ ...heading, line: index, end: text.length, endLine: result.lines.length - 1 });
+  }
+  for (let index = 0; index < headings.length; index++) {
+    const heading = headings[index]!;
+    const next = headings.slice(index + 1).find(candidate => candidate.level <= heading.level);
+    if (next) {
+      heading.end = next.start;
+      heading.endLine = Math.max(heading.line, next.line - 1);
+    }
+  }
+  return { detected: result.detected, headings };
 }
 
 /** Conservative evidence for checking Markdown automatically; explicit mode accepts any document. */
